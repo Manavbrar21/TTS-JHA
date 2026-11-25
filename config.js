@@ -7,10 +7,10 @@ self.JHA_CONFIG = {
   /* The Google Apps Script "Web app" URL from Step 1.
      Leave empty and forms are still saved on the phone,
      they just wait until this is filled in. */
-  ENDPOINT: "",
+  ENDPOINT: "https://script.google.com/macros/s/AKfycbxo35GqH_ZXx4YjS_hk03Np5fmbUQJVn_aFgfyXNNoyiiRyapWmzWaY_paFZcLVw_Vv/exec",
 
   /* Must match TOKEN in backend/Code.gs exactly. */
-  TOKEN: "change-this-to-a-long-random-phrase",
+  TOKEN: "NOKIA,21",
 
   COMPANY: "Total Transload Services (2015) Inc.",
   FORM_REV: "Rev. 2026-10-09",
