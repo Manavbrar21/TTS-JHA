@@ -531,7 +531,8 @@
     var pill = $("syncPill"), pending = lastList.filter(function (r) { return r.status !== "sent"; }).length;
     pill.className = "pill";
     if (mode === "sending" && pending) { pill.textContent = "↻ Sending…"; return; }
-    if (!CFG.ENDPOINT) { pill.className = "pill bad"; pill.textContent = pending ? "⚠ " + pending + " not sent (setup)" : "⚠ Office not set up"; }
+    if (!self.JHA_CONFIG) { pill.className = "pill bad"; pill.textContent = "⚠ config.js has a typo"; }
+    else if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(CFG.ENDPOINT || "")) { pill.className = "pill bad"; pill.textContent = CFG.ENDPOINT ? "⚠ Office link looks wrong" : (pending ? "⚠ " + pending + " not sent (setup)" : "⚠ Office not set up"); }
     else if (pending) { pill.className = "pill wait"; pill.textContent = "⏳ " + pending + " waiting to send"; }
     else { pill.className = "pill ok"; pill.textContent = "✓ All sent"; }
     $("countBadge").textContent = lastList.length ? "(" + lastList.length + ")" : "";
