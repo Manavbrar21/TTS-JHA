@@ -3,7 +3,7 @@
    as the phone gets signal — even if the app is closed. */
 importScripts("config.js", "sync.js");
 
-var CACHE = "tts-jha-v1";   /* bump this when you change any app file */
+var CACHE = "tts-jha-v2";   /* bump this when you change any app file */
 var ASSETS = [
   "./", "index.html", "app.js", "sync.js", "config.js", "manifest.webmanifest",
   "logo.png", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"
@@ -26,6 +26,16 @@ self.addEventListener("fetch", function (e) {
   var req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
   var key = req.mode === "navigate" ? "index.html" : req;
+  /* Settings file: always try the internet first so a change shows up at once. */
+  if (/\/config\.js$/.test(new URL(req.url).pathname)) {
+    e.respondWith(
+      fetch(req, { cache: "no-store" }).then(function (res) {
+        if (res && res.ok) { var c2 = res.clone(); caches.open(CACHE).then(function (c) { c.put(req, c2); }); }
+        return res;
+      }).catch(function () { return caches.match(req, { ignoreSearch: true }); })
+    );
+    return;
+  }
   e.respondWith(
     caches.open(CACHE).then(function (c) {
       return c.match(key, { ignoreSearch: true }).then(function (hit) {
