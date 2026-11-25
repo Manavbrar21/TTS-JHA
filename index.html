@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#202135" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="TTS JHA" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<title>TTS Field JHA</title>
+<style>
+  :root{
+    --font-head:"Arial Narrow","Liberation Sans Narrow","Helvetica Neue",system-ui,sans-serif;
+    --bg:#f2f0eb; --surface:#ffffff; --surface-2:#faf8f4;
+    --ink:#1b2430; --ink-soft:#4a5568; --line:#ddd6c9; --line-strong:#c9c0ab;
+    --brand:#202135; --brand-ink:#f5f7fa;
+    --accent:#15b9d9; --accent-ink:#0b1220; --accent-soft:#e3f6fb; --accent-text:#0a6f85;
+    --ok:#1e7a3c; --ok-soft:#e6f4ea; --warn:#9a6200; --warn-soft:#fdf3d7;
+    --danger:#b3261e; --danger-soft:#fdecea; --focus:#1971c2;
+    --shadow:0 1px 2px rgba(22,34,46,.08),0 4px 14px rgba(22,34,46,.06);
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0e1319; --surface:#182029; --surface-2:#1e2833;
+      --ink:#e9edf1; --ink-soft:#a7b3c0; --line:#2e3a47; --line-strong:#43536a;
+      --brand:#12131f; --brand-ink:#f5f7fa;
+      --accent:#3fcbe6; --accent-ink:#06141a; --accent-soft:#0f2e36; --accent-text:#7fdcef;
+      --ok:#5cc97e; --ok-soft:#17301f; --warn:#f2c14e; --warn-soft:#38300f;
+      --danger:#ff8a80; --danger-soft:#3d1714; --focus:#74c0fc;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+    }
+  }
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{ margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size:17px; line-height:1.45; }
+  button,select,summary{ min-height:2.75rem; }
+  .wrap{ max-width:880px; margin:0 auto; padding:0 14px calc(40px + env(safe-area-inset-bottom)); }
+  [hidden]{ display:none !important; }
+
+  /* ---------- Top bar ---------- */
+  .topbar{ position:sticky; top:0; z-index:20; background:var(--brand); color:var(--brand-ink);
+    padding:calc(8px + env(safe-area-inset-top)) 14px 0; border-bottom:4px solid var(--accent); }
+  .topbar .inner{ max-width:880px; margin:0 auto; }
+  .brandrow{ display:flex; align-items:center; gap:10px; }
+  .brandrow img{ height:44px; width:auto; margin:-4px 0 -4px -6px; }
+  .brandrow .mark{ font-family:var(--font-head); font-weight:700; letter-spacing:.12em; font-size:14px; text-transform:uppercase; line-height:1.15; }
+  .brandrow .mark b{ display:block; font-size:19px; letter-spacing:.06em; }
+  .pill{ margin-left:auto; font-size:13.5px; font-weight:700; border-radius:999px; padding:6px 11px;
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); white-space:nowrap; cursor:pointer; color:inherit; font-family:inherit; min-height:0; }
+  .pill.ok{ background:#1e7a3c; border-color:#1e7a3c; color:#fff; }
+  .pill.wait{ background:#e8a100; border-color:#e8a100; color:#241a00; }
+  .pill.bad{ background:#b3261e; border-color:#b3261e; color:#fff; }
+  .tabs{ display:flex; gap:4px; margin-top:8px; }
+  .tabs button{ flex:1; font:inherit; font-weight:700; font-size:16px; color:var(--brand-ink); opacity:.75;
+    background:transparent; border:none; border-bottom:4px solid transparent; margin-bottom:-4px; padding:8px 4px; cursor:pointer; }
+  .tabs button[aria-selected="true"]{ opacity:1; border-bottom-color:var(--accent); }
+  .net{ font-size:13px; text-align:center; padding:3px 0 6px; opacity:.85; }
+
+  /* ---------- Banners ---------- */
+  .stop-banner{ display:none; margin-top:16px; background:var(--danger); color:#fff; border-radius:var(--radius);
+    padding:14px 16px; font-weight:600; box-shadow:var(--shadow); }
+  .stop-banner.show{ display:block; }
+  .stop-banner .big{ font-family:var(--font-head); font-size:24px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:2px; }
+  @media (prefers-color-scheme: dark){ .stop-banner{ color:#1c0503; } }
+  .intro{ margin-top:14px; font-size:15px; color:var(--ink-soft); background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:10px 14px; }
+  .intro strong{ color:var(--ink); }
+
+  /* ---------- Cards ---------- */
+  section.card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-top:18px; overflow:hidden; }
+  .card-head{ display:flex; align-items:baseline; gap:10px; padding:14px 16px 10px; border-bottom:2px solid var(--line); }
+  .card-head .num{ font-family:var(--font-head); font-weight:700; font-size:15px; color:var(--accent-ink); background:var(--accent);
+    border-radius:6px; padding:2px 8px; letter-spacing:.05em; flex:none; }
+  .card-head h2{ font-family:var(--font-head); font-weight:600; font-size:24px; letter-spacing:.03em; text-transform:uppercase; margin:0; line-height:1.1; }
+  .card-head .hint{ margin-left:auto; font-size:13.5px; color:var(--ink-soft); text-align:right; }
+  .card-body{ padding:14px 16px 16px; }
+
+  /* ---------- Fields ---------- */
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid .full{ grid-column:1 / -1; }
+  @media (max-width:560px){ .grid{ grid-template-columns:1fr; } }
+  label.field{ display:block; }
+  label.field > span{ display:block; font-size:13.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px; }
+  input[type="text"],input[type="date"],input[type="time"],textarea{
+    width:100%; font:inherit; font-size:17px; color:var(--ink); background:var(--surface-2);
+    border:1.5px solid var(--line-strong); border-radius:8px; padding:10px 12px; min-height:48px; }
+  textarea{ min-height:76px; resize:vertical; }
+  input:focus,textarea:focus{ outline:3px solid var(--focus); outline-offset:1px; border-color:var(--focus); }
+  .now-row{ display:flex; gap:8px; }
+  .now-row input{ flex:1; min-width:0; }
+  .btn-now{ flex:none; font:inherit; font-weight:600; font-size:15px; background:var(--surface-2); color:var(--ink);
+    border:1.5px solid var(--line-strong); border-radius:8px; padding:0 14px; cursor:pointer; min-height:48px; }
+
+  /* ---------- Toggles ---------- */
+  .check-list{ display:flex; flex-direction:column; }
+  .check-row{ display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line); }
+  .check-row:last-child{ border-bottom:none; }
+  .check-row .q{ flex:1; font-weight:500; }
+  .check-row .q small{ display:block; color:var(--ink-soft); font-weight:400; font-size:14px; }
+  .seg{ display:flex; flex:none; border:1.5px solid var(--line-strong); border-radius:9px; overflow:hidden; background:var(--surface-2); }
+  .seg button{ font:inherit; font-weight:700; font-size:15px; border:none; background:transparent; color:var(--ink-soft);
+    padding:0 16px; min-height:44px; min-width:52px; cursor:pointer; border-right:1.5px solid var(--line-strong); }
+  .seg button:last-child{ border-right:none; }
+  .seg button[aria-pressed="true"]{ color:#fff; }
+  .seg button[data-val="yes"][aria-pressed="true"]{ background:var(--ok); }
+  .seg button[data-val="no"][aria-pressed="true"]{ background:var(--danger); }
+  .seg button[data-val="na"][aria-pressed="true"]{ background:var(--ink-soft); }
+  .seg button[data-val="L"][aria-pressed="true"],.seg button[data-val="LOW"][aria-pressed="true"]{ background:var(--ok); }
+  .seg button[data-val="M"][aria-pressed="true"],.seg button[data-val="MEDIUM"][aria-pressed="true"]{ background:#e8a100; color:#241a00; }
+  .seg button[data-val="H"][aria-pressed="true"],.seg button[data-val="HIGH"][aria-pressed="true"]{ background:var(--danger); }
+  @media (prefers-color-scheme: dark){ .seg button[aria-pressed="true"]{ color:#0d1117 !important; } }
+  @media (max-width:480px){ .check-row{ flex-wrap:wrap; } .check-row .q{ flex-basis:100%; } }
+
+  /* ---------- Hazards ---------- */
+  .hazard{ border:1px solid var(--line); border-left:6px solid var(--line-strong); border-radius:8px; padding:12px 14px; margin-bottom:12px; background:var(--surface-2); }
+  .hazard[data-step="SITE ACCESS"]{ border-left-color:#5b8def; }
+  .hazard[data-step="POSITIONING"]{ border-left-color:#7a5fd0; }
+  .hazard[data-step="BEFORE UNLOAD"]{ border-left-color:#c2255c; }
+  .hazard[data-step="HOOKUP"]{ border-left-color:#d9480f; }
+  .hazard[data-step="UNLOADING"]{ border-left-color:#b3261e; }
+  .hazard[data-step="FINISH"]{ border-left-color:#1e7a3c; }
+  .hazard[data-step="DEPARTURE"]{ border-left-color:#0e7c86; }
+  .hazard[data-step="EXTRA"]{ border-left-color:var(--warn); }
+  .hazard .step{ font-family:var(--font-head); font-weight:700; font-size:14px; letter-spacing:.1em; color:var(--ink-soft); text-transform:uppercase; }
+  .hazard .haz{ font-weight:700; font-size:17.5px; margin:2px 0 3px; }
+  .hazard .ctl{ color:var(--ink-soft); font-size:15.5px; }
+  .hazard .risk-row{ display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .hazard .risk-row .lbl{ font-size:13.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); }
+  .hazard .remove{ margin-left:auto; font:inherit; font-size:14px; font-weight:600; background:none; border:1.5px solid var(--line-strong);
+    color:var(--danger); border-radius:8px; padding:0 12px; min-height:44px; cursor:pointer; }
+  .hazard input,.hazard textarea{ margin-top:6px; }
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 14px; }
+  .chip{ font:inherit; font-size:15px; font-weight:600; background:var(--accent-soft); color:var(--accent-text); border:1.5px dashed var(--accent);
+    border-radius:999px; padding:8px 14px; min-height:44px; cursor:pointer; }
+
+  /* ---------- Signature ---------- */
+  .sig-wrap{ border:1.5px solid var(--line-strong); border-radius:8px; background:#fff; }
+  @media (prefers-color-scheme: dark){ .sig-wrap{ background:#f4f2ec; } }
+  canvas#sig{ display:block; width:100%; height:150px; touch-action:none; border-radius:8px; }
+  .sig-actions{ display:flex; gap:8px; margin-top:8px; align-items:center; }
+  .sig-status{ font-size:14px; color:var(--ink-soft); }
+
+  /* ---------- Buttons ---------- */
+  .btn{ font:inherit; font-weight:700; font-size:17px; border-radius:9px; padding:13px 16px; min-height:54px; cursor:pointer;
+    border:1.5px solid transparent; display:flex; align-items:center; justify-content:center; gap:8px; text-align:center; width:100%; text-decoration:none; }
+  .btn-big{ font-size:20px; min-height:64px; border-radius:10px; }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-secondary{ background:var(--surface-2); color:var(--ink); border-color:var(--line-strong); }
+  .btn-ghost{ background:none; color:var(--danger); border-color:var(--line-strong); font-weight:600; }
+  .btn-inline{ width:auto; min-height:44px; padding:0 16px; font-size:15px; }
+  .btn-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+  @media (max-width:420px){ .btn-row{ grid-template-columns:1fr; } }
+  .submit-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-top:18px; padding:16px; }
+  .submit-card h2{ font-family:var(--font-head); font-size:24px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; margin:0 0 4px; }
+  .submit-card p{ margin:0 0 12px; color:var(--ink-soft); font-size:15.5px; }
+  .missing{ display:none; margin-top:12px; background:var(--warn-soft); color:var(--warn); border:1px solid var(--warn); border-radius:8px; padding:10px 12px; font-size:15px; font-weight:500; }
+  .missing.show{ display:block; }
+
+  /* ---------- Saved forms list ---------- */
+  .list-head{ display:flex; align-items:center; gap:10px; margin-top:18px; }
+  .list-head h2{ font-family:var(--font-head); font-size:24px; text-transform:uppercase; letter-spacing:.03em; margin:0; flex:1; }
+  .form-item{ display:flex; gap:12px; align-items:center; width:100%; text-align:left; font:inherit; color:inherit;
+    background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--line-strong); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:12px 14px; margin-top:10px; cursor:pointer; }
+  .form-item.sent{ border-left-color:var(--ok); }
+  .form-item.pending{ border-left-color:#e8a100; }
+  .form-item.error{ border-left-color:var(--danger); }
+  .form-item .main{ flex:1; min-width:0; }
+  .form-item .site{ font-weight:700; font-size:18px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .form-item .meta{ font-size:14.5px; color:var(--ink-soft); }
+  .badge{ flex:none; font-size:13px; font-weight:700; border-radius:999px; padding:4px 10px; white-space:nowrap; }
+  .badge.sent{ background:var(--ok-soft); color:var(--ok); }
+  .badge.pending{ background:var(--warn-soft); color:var(--warn); }
+  .badge.error{ background:var(--danger-soft); color:var(--danger); }
+  .badge.stop{ background:var(--danger); color:#fff; margin-left:6px; }
+  .empty{ text-align:center; color:var(--ink-soft); padding:40px 10px; }
+
+  /* ---------- Form viewer ---------- */
+  .viewer{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-top:14px; overflow:hidden; }
+  .viewer .vhead{ background:var(--brand); color:var(--brand-ink); padding:14px 16px; }
+  .viewer .vhead .co{ font-family:var(--font-head); letter-spacing:.12em; font-size:13px; text-transform:uppercase; opacity:.85; }
+  .viewer .vhead h2{ font-family:var(--font-head); font-size:26px; text-transform:uppercase; margin:2px 0; line-height:1.05; }
+  .viewer .vbody{ padding:6px 16px 16px; }
+  .viewer h3{ font-family:var(--font-head); font-size:18px; text-transform:uppercase; letter-spacing:.05em; margin:16px 0 6px; color:var(--ink-soft); border-bottom:2px solid var(--line); padding-bottom:4px; }
+  .kv{ display:grid; grid-template-columns:auto 1fr; gap:4px 14px; font-size:16px; }
+  .kv dt{ color:var(--ink-soft); font-weight:600; }
+  .kv dd{ margin:0; font-weight:600; }
+  .vrow{ display:flex; gap:10px; padding:6px 0; border-bottom:1px solid var(--line); font-size:15.5px; }
+  .vrow:last-child{ border-bottom:none; }
+  .vrow .ans{ flex:none; min-width:54px; text-align:center; font-weight:800; font-size:13.5px; border-radius:6px; padding:2px 6px; align-self:flex-start; }
+  .ans.YES,.ans.L,.ans.LOW{ background:var(--ok-soft); color:var(--ok); }
+  .ans.NO,.ans.H,.ans.HIGH{ background:var(--danger-soft); color:var(--danger); }
+  .ans.M,.ans.MEDIUM{ background:var(--warn-soft); color:var(--warn); }
+  .ans.NA,.ans.none{ background:var(--surface-2); color:var(--ink-soft); }
+  .vrow .ctl{ display:block; color:var(--ink-soft); font-size:14px; }
+  .sig-img{ background:#fff; border:1px solid var(--line); border-radius:8px; max-width:320px; width:100%; display:block; }
+  .status-box{ border-radius:8px; padding:10px 12px; margin-top:12px; font-weight:600; font-size:15px; }
+  .status-box.sent{ background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok); }
+  .status-box.pending{ background:var(--warn-soft); color:var(--warn); border:1px solid var(--warn); }
+  .status-box.error{ background:var(--danger-soft); color:var(--danger); border:1px solid var(--danger); }
+
+  .install{ margin-top:18px; font-size:15px; color:var(--ink-soft); background:var(--surface); border:1px dashed var(--line-strong); border-radius:var(--radius); padding:12px 14px; }
+  .install strong{ color:var(--ink); }
+  footer.foot{ margin-top:22px; font-size:13.5px; color:var(--ink-soft); border-top:2px solid var(--line); padding-top:12px; line-height:1.6; }
+  footer.foot strong{ color:var(--danger); letter-spacing:.04em; }
+  .toast{ position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:50;
+    background:var(--brand); color:var(--brand-ink); border:2px solid var(--accent); border-radius:10px; padding:12px 16px;
+    font-weight:600; max-width:calc(100% - 32px); box-shadow:var(--shadow); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="inner">
+    <div class="brandrow">
+      <img src="logo.png" alt="Total Transload Services" />
+      <div class="mark">Field<b>JHA</b></div>
+      <button type="button" class="pill" id="syncPill">…</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button type="button" role="tab" id="tabNew" aria-selected="true">New JHA</button>
+      <button type="button" role="tab" id="tabList" aria-selected="false">My Forms <span id="countBadge"></span></button>
+    </nav>
+    <div class="net" id="netLine"></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ================= NEW FORM ================= -->
+  <main id="viewNew">
+    <div class="intro">
+      Fill this in <strong>before unloading at every site</strong>. Each site is different, so do a fresh one every time.
+      No signal is fine: the form is <strong>saved on your phone</strong> and goes to the office by itself when you're back in range.
+    </div>
+
+    <div class="stop-banner" id="stopBanner" role="alert">
+      <span class="big">⛔ Stop Work</span>
+      <span id="stopReason"></span>
+    </div>
+
+    <section class="card" aria-labelledby="h-job">
+      <div class="card-head"><span class="num">1</span><h2 id="h-job">Job Details</h2></div>
+      <div class="card-body">
+        <div class="grid">
+          <label class="field"><span>Driver name</span><input type="text" id="f-driver" autocomplete="name" placeholder="Your full name" /></label>
+          <label class="field"><span>Site / Location</span><input type="text" id="f-site" placeholder="e.g. Duram Creek" /></label>
+          <label class="field"><span>Date</span>
+            <div class="now-row"><input type="date" id="f-date" /><button type="button" class="btn-now" id="btnToday">Today</button></div></label>
+          <label class="field"><span>Time arrived</span>
+            <div class="now-row"><input type="time" id="f-time" /><button type="button" class="btn-now" id="btnNow">Now</button></div></label>
+          <label class="field full"><span>Task / Product</span><input type="text" id="f-task" placeholder="e.g. Pump polymer to silo" /></label>
+          <label class="field"><span>Truck #</span><input type="text" id="f-truck" placeholder="Truck unit #" /></label>
+          <label class="field"><span>Trailer #</span><input type="text" id="f-trailer" placeholder="Trailer unit #" /></label>
+          <label class="field full"><span>Load / BOL #</span><input type="text" id="f-bol" placeholder="Bill of lading number" /></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="h-pre">
+      <div class="card-head"><span class="num">2</span><h2 id="h-pre">Pre-Task Safety Confirmation</h2><span class="hint">All must be YES</span></div>
+      <div class="card-body"><div class="check-list" id="preList"></div></div>
+    </section>
+
+    <section class="card" aria-labelledby="h-site">
+      <div class="card-head"><span class="num">3</span><h2 id="h-site">Site Check Questions</h2><span class="hint">YES = hazard present, unless noted</span></div>
+      <div class="card-body"><div class="check-list" id="siteList"></div></div>
+    </section>
+
+    <section class="card" aria-labelledby="h-haz">
+      <div class="card-head"><span class="num">4</span><h2 id="h-haz">Hazards &amp; Controls</h2><span class="hint">Rate the risk for this site</span></div>
+      <div class="card-body">
+        <div id="hazardList"></div>
+        <h3 style="font-family:var(--font-head);font-size:20px;letter-spacing:.03em;text-transform:uppercase;margin:18px 0 6px;">Additional hazards at this site</h3>
+        <p style="margin:0 0 10px;color:var(--ink-soft);font-size:15px;">Tap one to add it, or use “Add my own” and write what you see.</p>
+        <div class="chips" id="chipRow"></div>
+        <div id="extraList"></div>
+        <button type="button" class="btn btn-secondary" id="btnAddOwn">+ Add my own hazard</button>
+        <div class="grid" style="margin-top:16px;">
+          <label class="field full"><span>Extra control(s) / action(s) taken</span>
+            <textarea id="f-extraControls" placeholder="Anything extra you did to control a hazard at this site…"></textarea></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="h-final">
+      <div class="card-head"><span class="num">5</span><h2 id="h-final">Final Assessment</h2></div>
+      <div class="card-body"><div class="check-list" id="finalList"></div></div>
+    </section>
+
+    <section class="card" aria-labelledby="h-sign">
+      <div class="card-head"><span class="num">6</span><h2 id="h-sign">Sign-Off</h2></div>
+      <div class="card-body">
+        <label class="field" style="margin-bottom:8px;"><span>Driver signature — sign with your finger</span></label>
+        <div class="sig-wrap"><canvas id="sig" width="800" height="300"></canvas></div>
+        <div class="sig-actions">
+          <button type="button" class="btn btn-secondary btn-inline" id="btnClearSig">Clear signature</button>
+          <span class="sig-status" id="sigStatus">Not signed yet</span>
+        </div>
+        <div class="grid" style="margin-top:14px;">
+          <label class="field"><span>Time signed</span>
+            <div class="now-row"><input type="time" id="f-signTime" /><button type="button" class="btn-now" id="btnSignNow">Now</button></div></label>
+          <label class="field"><span>Supervisor (if required)</span><input type="text" id="f-supervisor" placeholder="Name, if a supervisor reviewed it" /></label>
+        </div>
+      </div>
+    </section>
+
+    <div class="submit-card">
+      <h2>Save &amp; send</h2>
+      <p>Saves the form on this phone and sends it to the office. No signal? It waits and sends itself when you're back in range. You can always show it from <strong>My Forms</strong>.</p>
+      <div class="missing" id="missingBox"></div>
+      <button type="button" class="btn btn-primary btn-big" id="btnSave">✅ Save &amp; Send to Office</button>
+      <button type="button" class="btn btn-ghost" id="btnReset" style="margin-top:10px;">Clear form &amp; start over</button>
+    </div>
+
+    <div class="install" id="installBox">
+      <strong>Put this app on your home screen</strong> (do it once, with signal). After that it opens with no internet.<br />
+      <strong>iPhone:</strong> in Safari tap Share <span aria-hidden="true">⬆︎</span> → <strong>Add to Home Screen</strong>.<br />
+      <strong>Android:</strong> tap <span id="installBtnWrap"><button type="button" class="btn btn-secondary btn-inline" id="btnInstall" hidden>Install app</button></span> or Chrome menu ⋮ → <strong>Add to Home screen / Install app</strong>.
+    </div>
+  </main>
+
+  <!-- ================= LIST ================= -->
+  <main id="viewList" hidden>
+    <div class="list-head">
+      <h2>My Forms</h2>
+      <button type="button" class="btn btn-secondary btn-inline" id="btnSyncNow">↻ Send now</button>
+    </div>
+    <div id="listBody"></div>
+  </main>
+
+  <!-- ================= VIEWER ================= -->
+  <main id="viewDetail" hidden>
+    <button type="button" class="btn btn-secondary btn-inline" id="btnBack" style="margin-top:14px;">← Back to My Forms</button>
+    <div id="detailBody"></div>
+  </main>
+
+  <footer class="foot">
+    <strong>STOP WORK if conditions change.</strong> Follow site-specific SOP, permit rules, equipment instructions and product SDS. Do not climb on trailers where prohibited.<br />
+    TTS • Field JHA • <span id="revLine"></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="sync.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
